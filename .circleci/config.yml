@@ -63,6 +63,69 @@ jobs:
         name: "revert snapshot"
         command: |
           $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere/scripts/revert_snapshot.sh
+  revert_snapshot_again:
+    docker:
+    - image: circleci/golang:1.13
+    working_directory: $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere
+    steps:
+    - checkout
+    - add_ssh_keys:
+        fingerprints:
+          - "62:4d:8d:04:48:f7:0f:5a:63:da:de:a6:30:f4:b4:12"
+    - run:
+        name: "SSH Tunnel"
+        command: |
+          ssh $TUNNEL_USER@$TUNNEL_HOST -L 4430:vcenter.vsphere.hashicorptest.internal:443 -L 4431:esxi1.vsphere.hashicorptest.internal:443 -o StrictHostKeyChecking=no -f sleep 32400
+    - run:
+        name: "Get GOVC"
+        command: |
+          go get -u github.com/vmware/govmomi/govc
+    - run:
+        name: "revert snapshot"
+        command: |
+          $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere/scripts/revert_snapshot.sh
+  revert_snapshot_and_again:
+    docker:
+    - image: circleci/golang:1.13
+    working_directory: $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere
+    steps:
+    - checkout
+    - add_ssh_keys:
+        fingerprints:
+          - "62:4d:8d:04:48:f7:0f:5a:63:da:de:a6:30:f4:b4:12"
+    - run:
+        name: "SSH Tunnel"
+        command: |
+          ssh $TUNNEL_USER@$TUNNEL_HOST -L 4430:vcenter.vsphere.hashicorptest.internal:443 -L 4431:esxi1.vsphere.hashicorptest.internal:443 -o StrictHostKeyChecking=no -f sleep 32400
+    - run:
+        name: "Get GOVC"
+        command: |
+          go get -u github.com/vmware/govmomi/govc
+    - run:
+        name: "revert snapshot"
+        command: |
+          $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere/scripts/revert_snapshot.sh
+  revert_snapshot_this_time_with_feeling:
+    docker:
+    - image: circleci/golang:1.13
+    working_directory: $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere
+    steps:
+    - checkout
+    - add_ssh_keys:
+        fingerprints:
+          - "62:4d:8d:04:48:f7:0f:5a:63:da:de:a6:30:f4:b4:12"
+    - run:
+        name: "SSH Tunnel"
+        command: |
+          ssh $TUNNEL_USER@$TUNNEL_HOST -L 4430:vcenter.vsphere.hashicorptest.internal:443 -L 4431:esxi1.vsphere.hashicorptest.internal:443 -o StrictHostKeyChecking=no -f sleep 32400
+    - run:
+        name: "Get GOVC"
+        command: |
+          go get -u github.com/vmware/govmomi/govc
+    - run:
+        name: "revert snapshot"
+        command: |
+          $GOPATH/src/github.com/terraform-providers/terraform-provider-vsphere/scripts/revert_snapshot.sh
   test_acc_Client:
     docker:
     - image: circleci/golang:1.13
@@ -1685,9 +1748,12 @@ workflows:
       - test_acc_ResourceVSphereDistributedPortGroup:
           requires:
             - test_acc_ResourceVSphereDatastoreClusterVMAntiAffinityRule
-      - test_acc_ResourceVSphereDistributedVirtualSwitch:
+      - revert_snapshot_again:
           requires:
             - test_acc_ResourceVSphereDistributedPortGroup
+      - test_acc_ResourceVSphereDistributedVirtualSwitch:
+          requires:
+            - revert_snapshot_again
       - test_acc_ResourceVSphereDPMHostOverride:
           requires:
             - test_acc_ResourceVSphereDistributedVirtualSwitch
@@ -1730,9 +1796,12 @@ workflows:
       - test_acc_ResourceVSphereTagCategory:
           requires:
             - test_acc_ResourceVSphereTag
-      - test_acc_ResourceVSphereVAppContainer:
+      - revert_snapshot_and_again:
           requires:
             - test_acc_ResourceVSphereTagCategory
+      - test_acc_ResourceVSphereVAppContainer:
+          requires:
+            - revert_snapshot_and_again
       - test_acc_ResourceVSphereVAppEntity:
           requires:
             - test_acc_ResourceVSphereVAppContainer
@@ -1745,6 +1814,9 @@ workflows:
       - test_acc_ResourceVSphereVmfsDatastore:
           requires:
             - test_acc_ResourceVSphereVirtualMachineSnapshot
-      - test_acc_ResourceVSphereVirtualMachine:
+      - revert_snapshot_this_time_with_feeling:
           requires:
             - test_acc_ResourceVSphereVmfsDatastore
+      - test_acc_ResourceVSphereVirtualMachine:
+          requires:
+            - revert_snapshot_this_time_with_feeling
